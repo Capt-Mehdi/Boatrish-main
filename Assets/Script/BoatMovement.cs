@@ -25,6 +25,11 @@ public class BoatMovement : MonoBehaviour
     public Button obstacleRetryButton;
     public Button obstacleHomeButton;
 
+    public AudioClip winAudioClip;
+    public AudioClip loseAudioClip;
+    public AudioSource winAudioSource;
+    public AudioSource loseAudioSource;
+
     private Rigidbody rb;
     private bool hasWonOrDestroyed = false;
     private bool collisionDetected = false;
@@ -44,6 +49,16 @@ public class BoatMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         rb.angularDrag = 10f;
+
+        if (winAudioSource == null) // Add this line
+        {
+            winAudioSource = gameObject.AddComponent<AudioSource>(); // Add this line
+        }
+
+        if (loseAudioSource == null) // Add this line
+        {
+            loseAudioSource = gameObject.AddComponent<AudioSource>(); // Add this line
+        }
 
         originalRotation = transform.rotation;
 
@@ -237,6 +252,11 @@ public class BoatMovement : MonoBehaviour
         Debug.Log("You Win");
         hasWonOrDestroyed = true;
 
+        if (winAudioClip != null && winAudioSource != null)
+        {
+            winAudioSource.PlayOneShot(winAudioClip);
+        }
+
         if (winPopupPanel != null)
         {
             winPopupPanel.SetActive(true);
@@ -250,6 +270,11 @@ public class BoatMovement : MonoBehaviour
         rb.isKinematic = true;
         Debug.Log("Boat is destroyed");
         hasWonOrDestroyed = true;
+
+        if (loseAudioClip != null && loseAudioSource != null)
+        {
+            loseAudioSource.PlayOneShot(loseAudioClip);
+        }
 
         if (obstacleRetryPopupPanel != null)
         {
