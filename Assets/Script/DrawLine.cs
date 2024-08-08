@@ -5,6 +5,8 @@ public class DrawLine3D : MonoBehaviour
 {
     public GameObject linePrefab;
     public PhysicMaterial zeroFrictionMaterial; // PhysicMaterial with zero friction
+    public AudioClip drawSound;  // Sound to play when a line is drawn
+    public AudioSource audioSource; // AudioSource component for playing sounds
     private LineRenderer currentLineRenderer;
     private List<Vector3> points;
 
@@ -63,6 +65,9 @@ public class DrawLine3D : MonoBehaviour
                 currentLineRenderer.SetPosition(0, points[0]);
                 currentLineRenderer.SetPosition(1, points[1]);
 
+                // Play sound effect
+                PlaySound(drawSound);
+
                 // Apply zero friction material
                 Collider lineCollider = line.GetComponent<Collider>();
                 if (lineCollider != null && zeroFrictionMaterial != null)
@@ -120,6 +125,14 @@ public class DrawLine3D : MonoBehaviour
         if (zeroFrictionMaterial != null)
         {
             boxCollider.material = zeroFrictionMaterial;
+        }
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 }

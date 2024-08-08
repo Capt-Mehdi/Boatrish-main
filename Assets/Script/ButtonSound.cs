@@ -1,43 +1,22 @@
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Audio;
-using System.Collections;
 
-public class PlayAudioButton : MonoBehaviour
+public class PlayButtonSound : MonoBehaviour
 {
-    // Reference to the audio source (drag and drop from Inspector)
-    public AudioSource audioSource;
-
-    // Reference to the audio clip (drag and drop from Inspector)
-    public AudioClip audioClip;
-
-    // Reference to the button (drag and drop from Inspector)
-    public Button playButton;
-
-    // Time in seconds to play the audio
-    public float playTime = 5f;
+    public AudioSource buttonSound;
 
     void Start()
     {
-        // Add event listener to the button's onClick event
-        playButton.onClick.AddListener(PlayAudio);
+        if (buttonSound == null)
+        {
+            buttonSound = GetComponent<AudioSource>();
+        }
     }
 
-    void PlayAudio()
+    public void PlaySound()
     {
-        // Play the audio clip
-        audioSource.Play();
-
-        // Start a coroutine to stop the audio after playTime seconds
-        StartCoroutine(StopAudioAfterTime());
-    }
-
-    // Coroutine to stop the audio after playTime seconds
-    IEnumerator StopAudioAfterTime()
-    {
-        yield return new WaitForSeconds(playTime);
-
-        // Stop the audio source
-        audioSource.Stop();
+        if (buttonSound != null && !buttonSound.isPlaying)
+        {
+            buttonSound.Play();
+        }
     }
 }

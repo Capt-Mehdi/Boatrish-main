@@ -3,7 +3,23 @@ guid: 73a2a58e0586f174f8c14abdf5c79a17
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - zeroFrictionMaterial: {instanceID: 0}
+  - winPopupPanel: {instanceID: 0}
+  - obstaclePopupPanel: {instanceID: 0}
+  - nextLevelButton: {instanceID: 0}
+  - mainMenuButton: {instanceID: 0}
+  - retryButton: {instanceID: 0}
+  - endZonePopupPanel: {instanceID: 0}
+  - obstacleRetryPopupPanel: {instanceID: 0}
+  - endZoneRetryButton: {instanceID: 0}
+  - endZoneHomeButton: {instanceID: 0}
+  - obstacleRetryButton: {instanceID: 0}
+  - obstacleHomeButton: {instanceID: 0}
+  - winAudioClip: {fileID: 8300000, guid: 685ad41b9d8948547bf898de023014b9, type: 3}
+  - loseAudioClip: {fileID: 8300000, guid: 0e776c809e1d68c4393bec583200502b, type: 3}
+  - winAudioSource: {instanceID: 0}
+  - loseAudioSource: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
