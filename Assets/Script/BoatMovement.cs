@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections;
 
 public class BoatMovement : MonoBehaviour
 {
+    // Buoyancy and physics settings
     public float waterLevel = 0.3f;
     public float floatHeight = 0.5f;
     public float buoyancyStrength = 20f;
@@ -12,6 +14,7 @@ public class BoatMovement : MonoBehaviour
     public float rotationResetDuration = 10f;
     public PhysicMaterial zeroFrictionMaterial;
 
+    // UI Elements
     public GameObject winPopupPanel;
     public GameObject obstaclePopupPanel;
     public Button nextLevelButton;
@@ -25,10 +28,13 @@ public class BoatMovement : MonoBehaviour
     public Button obstacleRetryButton;
     public Button obstacleHomeButton;
 
+    // Audio Clips
     public AudioClip winAudioClip;
     public AudioClip loseAudioClip;
+    public AudioClip endZoneAudioClip;  // Added for EndZone audio
     public AudioSource winAudioSource;
     public AudioSource loseAudioSource;
+    public AudioSource endZoneAudioSource;  // Added for EndZone audio
 
     private Rigidbody rb;
     private bool hasWonOrDestroyed = false;
@@ -44,20 +50,29 @@ public class BoatMovement : MonoBehaviour
     private float timeSinceLastMove = 0f;
     public float maxStuckTime = 5f; // Maximum time allowed to be stuck in seconds
 
+    public Animator playerAnim;
+    public GameObject player;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
         rb.angularDrag = 10f;
 
-        if (winAudioSource == null) // Add this line
+        // Ensure AudioSource components are present
+        if (winAudioSource == null)
         {
-            winAudioSource = gameObject.AddComponent<AudioSource>(); // Add this line
+            winAudioSource = gameObject.AddComponent<AudioSource>();
         }
 
-        if (loseAudioSource == null) // Add this line
+        if (loseAudioSource == null)
         {
-            loseAudioSource = gameObject.AddComponent<AudioSource>(); // Add this line
+            loseAudioSource = gameObject.AddComponent<AudioSource>();
+        }
+
+        if (endZoneAudioSource == null) // Initialize EndZone AudioSource
+        {
+            endZoneAudioSource = gameObject.AddComponent<AudioSource>();
         }
 
         originalRotation = transform.rotation;
@@ -79,6 +94,15 @@ public class BoatMovement : MonoBehaviour
         InitializeUI(obstacleRetryPopupPanel, obstacleHomeButton, MainMenu);
 
         previousPosition = transform.position;
+
+        if (player != null)
+        {
+            playerAnim = player.GetComponent<Animator>();
+        }
+        else
+        {
+            Debug.LogError("Player GameObject is not assigned in the BoatMovement script.");
+        }
     }
 
     void Update()
@@ -247,16 +271,30 @@ public class BoatMovement : MonoBehaviour
 
     private void HandleWin()
     {
+        playerAnim.SetBool("Win", true);  // Trigger the Win animation
+        Debug.Log("In Trigger");
+
         rb.velocity = Vector3.zero;
         rb.isKinematic = true;
         Debug.Log("You Win");
         hasWonOrDestroyed = true;
 
+        StartCoroutine(ShowWinPopupAfterAnimation());
+
         if (winAudioClip != null && winAudioSource != null)
         {
             winAudioSource.PlayOneShot(winAudioClip);
         }
+    }
 
+    IEnumerator ShowWinPopupAfterAnimation()
+    {
+        Debug.Log("Wait for the win animation to complete");
+
+        // This yields for the duration of the animation clip
+        yield return new WaitForSeconds(10.0f); // Adjust this time to match your animation length
+
+        // Now show the win popup
         if (winPopupPanel != null)
         {
             winPopupPanel.SetActive(true);
@@ -287,13 +325,18 @@ public class BoatMovement : MonoBehaviour
     {
         rb.velocity = Vector3.zero;
         rb.isKinematic = true;
-        Debug.Log("EndZone reached. Restarting level.");
+        Debug.Log("Reached End Zone");
         hasWonOrDestroyed = true;
+
+        if (endZoneAudioClip != null && endZoneAudioSource != null)
+        {
+            endZoneAudioSource.PlayOneShot(endZoneAudioClip);
+        }
 
         if (endZonePopupPanel != null)
         {
             endZonePopupPanel.SetActive(true);
-            Debug.Log("EndZone Popup Panel is now active.");
+            Debug.Log("End Zone Popup Panel is now active.");
         }
     }
 
