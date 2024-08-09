@@ -5,6 +5,14 @@ using System.Collections;
 
 public class BoatMovement : MonoBehaviour
 {
+    // Camera and Animation
+    public Camera mainCamera;
+    public Camera winCamera;
+    private Vector3 originalCameraPosition;
+    private Quaternion originalCameraRotation;
+    public Animator playerAnim;
+    public GameObject player;
+
     // Buoyancy and physics settings
     public float waterLevel = 0.3f;
     public float floatHeight = 0.5f;
@@ -31,10 +39,10 @@ public class BoatMovement : MonoBehaviour
     // Audio Clips
     public AudioClip winAudioClip;
     public AudioClip loseAudioClip;
-    public AudioClip endZoneAudioClip;  // Added for EndZone audio
+    public AudioClip endZoneAudioClip;
     public AudioSource winAudioSource;
     public AudioSource loseAudioSource;
-    public AudioSource endZoneAudioSource;  // Added for EndZone audio
+    public AudioSource endZoneAudioSource;
 
     private Rigidbody rb;
     private bool hasWonOrDestroyed = false;
@@ -49,9 +57,6 @@ public class BoatMovement : MonoBehaviour
     private Vector3 previousPosition;
     private float timeSinceLastMove = 0f;
     public float maxStuckTime = 5f; // Maximum time allowed to be stuck in seconds
-
-    public Animator playerAnim;
-    public GameObject player;
 
     void Start()
     {
@@ -70,7 +75,7 @@ public class BoatMovement : MonoBehaviour
             loseAudioSource = gameObject.AddComponent<AudioSource>();
         }
 
-        if (endZoneAudioSource == null) // Initialize EndZone AudioSource
+        if (endZoneAudioSource == null)
         {
             endZoneAudioSource = gameObject.AddComponent<AudioSource>();
         }
@@ -103,6 +108,19 @@ public class BoatMovement : MonoBehaviour
         {
             Debug.LogError("Player GameObject is not assigned in the BoatMovement script.");
         }
+
+        // Save the original camera position and rotation
+        if (mainCamera != null)
+        {
+            originalCameraPosition = mainCamera.transform.position;
+            originalCameraRotation = mainCamera.transform.rotation;
+        }
+
+        // Ensure the win camera is disabled initially
+        if (winCamera != null)
+        {
+            winCamera.gameObject.SetActive(false);
+        }
     }
 
     void Update()
@@ -111,7 +129,6 @@ public class BoatMovement : MonoBehaviour
 
         ApplyBuoyancy();
 
-        // Check if the boat is stuck
         if (Vector3.Distance(previousPosition, transform.position) < 0.01f)
         {
             timeSinceLastMove += Time.deltaTime;
@@ -162,7 +179,6 @@ public class BoatMovement : MonoBehaviour
 
             lineCollisionCount++;
 
-            // Ensure smooth transition by adding force along the current direction
             rb.AddForce(currentDirection * waterDrag, ForceMode.Acceleration);
         }
 
@@ -239,7 +255,6 @@ public class BoatMovement : MonoBehaviour
             }
         }
 
-        // Apply damping to reduce bouncing
         if (rb.velocity.y > 0)
         {
             rb.AddForce(new Vector3(0, -rb.velocity.y * 0.5f, 0), ForceMode.VelocityChange);
@@ -269,7 +284,7 @@ public class BoatMovement : MonoBehaviour
         currentDirection = direction.normalized;
     }
 
-    private void HandleWin()
+    public void HandleWin()
     {
         playerAnim.SetBool("Win", true);  // Trigger the Win animation
         Debug.Log("In Trigger");
@@ -285,16 +300,35 @@ public class BoatMovement : MonoBehaviour
         {
             winAudioSource.PlayOneShot(winAudioClip);
         }
+
+        // Change to the win camera
+        if (winCamera != null && mainCamera != null)
+        {
+            mainCamera.gameObject.SetActive(false); // Deactivate the main camera
+            winCamera.gameObject.SetActive(true);   // Activate the win camera
+
+            // Revert back to the main camera after 3 seconds
+            StartCoroutine(RevertToMainCameraAfterDelay(3.0f));
+        }
+    }
+
+    IEnumerator RevertToMainCameraAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (mainCamera != null && winCamera != null)
+        {
+            winCamera.gameObject.SetActive(false);  // Deactivate the win camera
+            mainCamera.gameObject.SetActive(true);  // Activate the main camera
+        }
     }
 
     IEnumerator ShowWinPopupAfterAnimation()
     {
         Debug.Log("Wait for the win animation to complete");
 
-        // This yields for the duration of the animation clip
-        yield return new WaitForSeconds(10.0f); // Adjust this time to match your animation length
+        yield return new WaitForSeconds(3.0f); // Adjust this time to match your animation length
 
-        // Now show the win popup
         if (winPopupPanel != null)
         {
             winPopupPanel.SetActive(true);
@@ -317,15 +351,14 @@ public class BoatMovement : MonoBehaviour
         if (obstacleRetryPopupPanel != null)
         {
             obstacleRetryPopupPanel.SetActive(true);
-            Debug.Log("Obstacle Retry Popup Panel is now active.");
         }
     }
 
-    private void HandleEndZoneCollision()
+    public void HandleEndZoneCollision()
     {
         rb.velocity = Vector3.zero;
         rb.isKinematic = true;
-        Debug.Log("Reached End Zone");
+        Debug.Log("Boat reached the end zone");
         hasWonOrDestroyed = true;
 
         if (endZoneAudioClip != null && endZoneAudioSource != null)
@@ -336,18 +369,14 @@ public class BoatMovement : MonoBehaviour
         if (endZonePopupPanel != null)
         {
             endZonePopupPanel.SetActive(true);
-            Debug.Log("End Zone Popup Panel is now active.");
         }
     }
 
     private void InitializeUI(GameObject panel, Button button, UnityEngine.Events.UnityAction action)
     {
-        if (panel != null)
+        if (panel != null && button != null)
         {
             panel.SetActive(false);
-        }
-        if (button != null)
-        {
             button.onClick.AddListener(action);
         }
     }
